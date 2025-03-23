@@ -17,10 +17,10 @@ cd /folder
 docker-compose up -d
 ```
 
-<b>Prometheus:</b> localhost:9090
-<b>Grafana:</b> localhost:3000
-<b>cAdvisor:</b> localhost:8080
+<b>Prometheus:</b> localhost:9090 <br>
+<b>Grafana:</b> localhost:3000 <br>
+<b>cAdvisor:</b> localhost:8080 <br>
 
-Prometheus - собирает метрики и хранит в виде временных рядов
-cAdvisor - мониторинг потребляемых контейнерами ресурсов
-Grafana - визуализация данных
+Prometheus - собирает метрики и хранит в виде временных рядов <br>
+cAdvisor - мониторинг потребляемых контейнерами ресурсов <br>
+Grafana - визуализация данных <br>
