@@ -1,0 +1,52 @@
+version: '3.8'
+
+networks:
+  monitoring: # название сети
+    name: monitoring
+    driver: bridge # создаем бридж сеть, по которой контейнеры будут общаться друг с другом
+
+services: # перечисление сервисов
+  prometheus:
+    image: prom/prometheus:latest # образ прометеуса последней версии
+    container_name: prometheus # название контейнера
+    ports:
+      - "9090:9090" # проброс портов между хост-машиной и контейнером
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # волюм в котором будет содержаться конфиг прометеуса с хоста и который будет занесен внуть контейнера
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml" # команда для запуска prometheus
+    restart: unless-stopped # контейнер будет перезапускаться при падениях кроме случая, когда его остановили вручную
+    networks:
+      - monitoring
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8080:8080" # cadVisor UI будет доступен по этому порту
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # сокет, через который контейнеры могут обращаться к API Docker, :ro - read-only, cadvisor использует его чтобы получать данные о контейнерах
+      - /sys:/sys:ro # системный каталог линукса где хранятся данные о CPU, памяти, устройствах
+      - /var/lib/docker/:/var/lib/docker:ro # каталог, где Docker хранит все данные: слои образов, контейнерные файлы, cadvisor получает оттуда статистику о дисковом пространстве
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest # образ графаны последней версии
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana # сохраняем данные из нижнеобьявленного волюма внутри контейнера для персистентности данных между перезапусками
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GR_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus # контейнер графаны запускается строго после запуска контейнера прометеуса
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+volumes:
+  grafana-data: # обьявляем волюм графаны, который будет хранить данные между перезапусками контейнера
